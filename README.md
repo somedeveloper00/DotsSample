@@ -52,7 +52,7 @@ public struct MovingComponentData : IComponentData {
 }
 ```
 Notice how it's a `struct` and inherits from `IComponentData`. If you had used a `class` instead, you would've created a *managed* component. That's not necessarily bad, but it's always better to try to use as little managed data as possible in ECS.  
-Now, let's create out *Authoring* MonoBehaviour. It's a normal MonoBehaviour, only it doesn't have any systems inside it. just data. It's purpose is to convert to ECS at runtime, but show as a normal Game Object in Edit mode.
+Now, let's create an *Authoring* MonoBehaviour. It's a normal MonoBehaviour, only it doesn't have any systems inside it. just data. It's purpose is to convert to ECS at runtime, but show as a normal Game Object in Editor.
 ```csharp
 public class MovingAuthoring : MonoBehaviour {
     public float moveSpeed;
@@ -84,11 +84,14 @@ Note that the `authoring` is the instance of the MonoBehaviour that's being conv
 With this alone, your component will turn into the previously created `MovingCompoenntData` component at runtime.
 To see it correctly converting to ECS, make a new SubScene in your scene  
 ![img_3.png](ArticleRes/img_3.png)  
+
 And move your main cube inside it.  
 ![img_5.png](ArticleRes/img_5.png)  
+
 Now enter play mode. Open Entities Hierarchy window, set Inspector as *Runtime* and you'll see the new `MoveComponentData` is added to your entity. 
 ![img_7.png](ArticleRes/img_7.png)  
-Now let's add a system to make it work. I'll just write the whole thing here, many of the syntax are self-explanatory, but I'll explain the important parts.
+
+Now let's add a system to make it work. I'll just write the whole thing here, many of the syntax are self-explanatory, so I'll explain the important parts.
 ```csharp
 // they have to be partial so ECS's source generator can add the rest of the code
 public partial struct MoveSystem : ISystem {
@@ -114,9 +117,9 @@ public partial struct MoveSystem : ISystem {
     }
 }
 ```
-> Note that we're assigning the code to be optimized by Burst compiler; Burst is a compiler that optimizes your code for the CPU in IL level, and it's very useful for ECS. Coding Burst-Compatible C# is known as HPC#. It's beyond the scope of this tutorial to explain how it works, but just know that it won't work if your method uses managed variables. (more reasons to prioritize the use of value types over reference types for components)
+> Note that we're assigning the code to be optimized by Burst compiler; Burst is a compiler that optimizes your code for the CPU in IL level, and it's very useful for ECS. Coding Burst-Compatible C# is also known as *HPC#*. It's beyond the scope of this tutorial to explain how it works, but just know that it won't work if your method uses managed variables. (more reasons to prioritize the use of value types over reference types for components)
 
-Now, in the code, perhaps the only strange part is the use of `SystemAPI.Query`. That syntax gives all the queried components that have the same entity. So it runs once per entity with `LocalTransform` and `MoveComponentData`; in our case, we only have one.
+Now, in the code, perhaps the only strange part is the use of `SystemAPI.Query`. That syntax returns all the queried components that have the same entity. So it runs once per entity with `LocalTransform` and `MoveComponentData`; in our case, we only have one.
 <video src="ArticleRes/out.mp4" controls></video>
 
 ## Random & Spawn
@@ -134,7 +137,7 @@ public class SpawnAuthoring : MonoBehaviour {
     }
 }
 ```
-Now let's go for the data component
+Now let's go for the ComponentData
 ```csharp
 public struct SpawnComponentData : IComponentData {
     public Entity prefab;
@@ -144,7 +147,7 @@ public struct SpawnComponentData : IComponentData {
     public float3 area;
 }
 ```
-There are three new things here. `Entity` replaces `GameObject` as the reference to a prefab. `Random` is a struct from `Unity.Mathematics` that's burst-compatible, and `float3` is the burst-compatible version of `Vector3` (also from `Unity.Mathematics`).
+There are three new things here. `Entity` replaces `GameObject` as the reference is to a prefab and later converts to an Entity during Baking. `Random` is a struct from `Unity.Mathematics` that's burst-compatible, and `float3` is the burst-compatible version of `Vector3` (also from `Unity.Mathematics`).
 Here's how the baker would look like
 ```csharp
 class SpawnBaker : Baker<SpawnAuthoring> {
@@ -188,11 +191,11 @@ public partial struct SpawnSystem : ISystem {
     }
 }
 ```
-Ok, quite a few concepts right here. first off, `ecb` or Entity Command Buffer is responsible for executing entity-related commands like instantiation, adding component or removing components, set entity names or destroying them etc. And by using `BeginSimulationEntityCommandBufferSystem`'s command buffer, we're using one of the built-in command buffers that's executed at the beginning of the simulation. There are also `EndSimulationEntityCommandBufferSystem` and `BeginFixedStepSimulationEntityCommandBufferSystem` (and others) you could use, each with self-explanatory name. You can also create your own command buffer.  
-You might have noticed that we're using `OnCreate` this time. That's because now we need the `BeginSimulationEntityCommandBufferSystem` to be created before our system. We could specify anything that our system depends on with the `RequireForUpdate` method. For instance we could specify that we *need* there to be a `SpawnComponentData` for our system t start working, in which case we'd add `state.RequireForUpdate<SpawnComponentData>()` to our `OnUpdate` as well.   
-The query part doesn't have anything worth noting.  
+Ok, quite a few new concepts right here. first off, `ecb` or EntityCommandBuffer is responsible for executing entity-related commands like instantiation, adding component or removing components, set entity names or destroying them etc. And by using `BeginSimulationEntityCommandBufferSystem`'s command buffer, we're using one of the built-in command buffers that's executed every frame of the ECS simulation (so the `ecb` will *Playback* at the end of the frame). There are also `EndSimulationEntityCommandBufferSystem` and `BeginFixedStepSimulationEntityCommandBufferSystem` (and others) you could use, each with self-explanatory names. You can also create your own command buffer.  
+You might have noticed that we're using `OnCreate` this time. That's because now we need the `BeginSimulationEntityCommandBufferSystem` to be created before our system. We could specify anything that our system depends on with the `RequireForUpdate` method. For instance we could specify that we *need* there to be a `SpawnComponentData` for our system to start working, in which case we'd add `state.RequireForUpdate<SpawnComponentData>()` to our `OnUpdate` as well.   
 This is the result of the spawner system:  
 <video src="ArticleRes/out2.mp4" controls></video>  
+
 Notice how it doesn't respect the local position of our Authoring. Let's fix that
 ```csharp
 foreach (var (spawn, transform) in SystemAPI.Query<RefRW<SpawnComponentData>, RefRW<LocalTransform>>()) {
@@ -210,8 +213,10 @@ foreach (var (spawn, transform) in SystemAPI.Query<RefRW<SpawnComponentData>, Re
     }
 }
 ```
-Now we're converting our local space random point to world space by using the `LocalTransform` of the entity, just like how we'd do in regular MonoBehaviour.
+Now we're converting our local space random point to world space by using the `LocalTransform` of the entity, just like how we'd do in regular MonoBehaviour. (Many of the ECS API of Unity's built-in components are very similar to the MonoBehaviour version of them)
+
 <video src="ArticleRes/out3.mp4" controls></video>  
+
 Let's also make it support local rotation and scale. First on the authoring side. how the Gizmo would draw it
 ```csharp
 void OnDrawGizmosSelected() {
@@ -250,13 +255,10 @@ class SpawnBaker : Baker<SpawnAuthoring> {
 ```
 <video src="ArticleRes/out-1.mp4" controls></video>
 
-## Physics!
+## Physics
 We need to install **Unity Physics** package first.  
 Then assign physics to the spawning spheres as you'd normally do. Nothing new about this one.  
-
-<video src="ArticleRes/out-2.mp4" controls></video>
-
-Now let's modify out movement system so instead of moving by LocalTransform, it moves by physics.
+Then let's modify our movement system so instead of moving by LocalTransform, it moves by physics.
 ```csharp
 // runs every fixed update
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
@@ -287,7 +289,7 @@ Note the `UpdateInGroup` attribute and the query have changed. We're using some 
 
 </video><video src="ArticleRes/out-3.mp4" controls></video>
 
-There's nothing stopping us from manipulating the `PhysicsVelocity` directly though, we could just assign he velocity like we could with old `Rigidbody` components.
+There's nothing stopping us from manipulating the `PhysicsVelocity` directly though, we could just assign the velocity like we could with old `Rigidbody` components.
 
 ```csharp
 foreach (var (moving, transform, physicsVelocity) in SystemAPI.Query<
@@ -309,7 +311,7 @@ But just like in `Rigidbody`, we need to be careful with this.
 
 ## Army of Spheres ( and referencing )
 
-DOTS is *perfect* for mass data manipulation, so let's make an army of spheres pushing their way towards a random point in a area!  
+DOTS is *perfect* for mass data manipulation, so let's make an army of spheres pushing their way towards a random point in an area!  
 We need to spawn from multiple places, then have a singleton *Area*-like component as the spheres' target, then each sphere finds a random point inside that *Area* and move towards it using physics.  
 Let's start by breaking down the *Spawner* into two components, one *Spawn* and one *Area*.  
 ComponentDatas:
@@ -399,7 +401,7 @@ Now let's make a few spawners in the scene for spheres to spawn from.
 
 <video src="ArticleRes/out-5.mp4" controls></video>
 
-Now to make them go towards the blue boxes, we need to make a system that's responsible for moving objects towards a random point in an area, and change that point every few moments. Here's the authoring and component data: 
+Now to make them go towards the target area (I set it slightly above blue platform), we need to make a system that's responsible for moving objects towards a random point in an area, and change that point every n seconds. Here's the authoring and component data: 
 
 ```csharp
 public struct FloatTowardsComponentData : IComponentData {
@@ -465,7 +467,7 @@ And the result should look something like this:
 
 <video src="ArticleRes/out-7.mp4" controls></video>
 
-Looks good, but this isn't a good practice, we need to come up with an approach that doesn't need moving our prefabs inside the SubScene in Editor. Here's where *Singletons* become handy! Let's create a tag for out target area and remove the referencing Entity from our previous component data.  
+Looks good, but this isn't a good practice, we need to come up with an approach that doesn't need moving our prefabs inside the SubScene in Editor. Here's where *Singletons* come in handy! Let's create a tag for our target area and remove the referencing Entity from our previous component data.  
 
 ```csharp
 public struct FloatTowardsComponentData : IComponentData {
@@ -534,12 +536,11 @@ Notice that we're using `RequireForUpdate` to make sure that the system is only 
 
 <video src="ArticleRes/out-8.mp4" controls></video>
 
-All of these are running in a single thread, so let's make it multi-threaded by using *Jobs* system. Jobs is part of the DOTS and is Burst-compatible if we follow some guidelines, mostly about using just unmanaged types and placing the right attributes. There are a few `Job` options we could use, the one that we're going to use is `IJobEntity`; this job is the easiest to work with; the special point of it is that you write the parameters you need, and Jobs will generate the rest of the code for you (You can view the generated sources in /Temp directory of your project).  
+All of these are running in a single thread, so let's make it multi-threaded by using *Jobs* system. Jobs is part of the DOTS and is Burst-compatible if we follow some guidelines, mostly about using just unmanaged types and placing the right attributes. There are a few `Job` options we could use, the one that we're going to use is `IJobEntity`; this job is the easiest to work with; the special point of it is that you write the parameters you need, and Jobs will generate the rest of the code for you (You can view the generated sources in `/Temp` directory of your project).  
 Here's how the `FloatTowardsSystem` will look like:  
 
 ```csharp
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-
 public partial struct FloatingTowardsSystem : ISystem {
     
     [BurstCompile] public void OnCreate(ref SystemState state) => 
@@ -586,7 +587,7 @@ public partial struct FloatingTowardsSystem : ISystem {
 }
 ```  
 
-Notice that the job class is *partial*, it's because the other part of it is going to be written in in source generation process. We write the query parameters we need as the `Execute` arguments, and the source gen will handle the query part for us. And as for the local fields, they serve as parameters for the job, which we're injecting from the system; Also notice that we can't use `SystemAPI.Time` in the job, so we're passing it as a parameter instead.  
+Notice that the job class is *partial*, it's because the other part of it is going to be written in source generation process. We write the query parameters we need as the `Execute` arguments, and the source gen will handle the query part for us. And as for the local fields, they serve as parameters for the job, which we're injecting from the system; Also notice that we can't use `SystemAPI.Time` in the job, so we're passing it as a parameter instead.  
 And then finally, the `ScheduleParallel`, as it's name suggests, marks the job to be executed in parallel.  
 > Don't forget to mark burst-compatible functions and types as [BurstCompile]. The perfromance boost is worth it.
 
@@ -786,12 +787,12 @@ public class CustomAuthoringExample : MonoBehaviour {
 }
 ```
 
-This process will not expand well, and can only be used when the entity is simple enough to add all of it's components through code. But in our example, we have a player with lots of components, *and* a child sunglasses object, so it'll take a very long time to write it all in code, and I won't do it. Use this technique only when you have a very simple entity; (i.e. maybe you just want to take advantage of System's parallel Jobs to process some mass data)
+This process will not expand well, and can only be used when the entity is simple enough to add all of it's components through code, the advantage however is that the system and component will be burst-compatible. But in our example, we have a player with lots of components, *and* a child sunglasses object, so it'll take a very long time to write it all in code, and I won't do it. Use this technique only when you have a very simple entity (i.e. maybe you just want to take advantage of System's parallel Jobs to process some mass data).
 
 
 ## Footer
 
-That's it for the starters guide, I hope you learned something new, and I hope you'll follow up on the ECS documentation to learn more about it, it's really an amazing system! 
+That's it for the starters guide, I hope you learned something new, and I make sure to follow up on the ECS documentation to learn more about it. It's really an amazing system! 
 All sample codes from this project are available in the github repository [https://github.com/somedeveloper00/DotsSample](https://github.com/somedeveloper00/DotsSample), so you can download and try them out yourself.    
 If you have any questions, or you want to correct some part of this project, feel free to contact me via [email](mailto:barari.saeed.am@gmail.com) or create a pull request.
 
