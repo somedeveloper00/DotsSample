@@ -1,22 +1,21 @@
 # Start using DOTS in Half an Hour
 
-<!-- TOC -->
-* [Start using DOTS in Half an Hour](#start-using-dots-in-half-an-hour)
-    * [Who is this article for?](#who-is-this-article-for)
-  * [Hardware](#hardware)
-  * [OOP VS ECS: Data Structure](#oop-vs-ecs-data-structure)
-  * [How Does ECS Function?](#how-does-ecs-function)
-  * [Installation](#installation)
-  * [Move Around](#move-around)
-  * [Random & Spawn](#random--spawn)
-  * [Physics!](#physics)
-  * [Army of Spheres ( and referencing )](#army-of-spheres--and-referencing-)
-  * [Connection with MonoBehaviours](#connection-with-monobehaviours)
-    * [Sync from Systems using identifiers](#sync-from-systems-using-identifiers)
-    * [Spawn GameObjects from Systems](#spawn-gameobjects-from-systems)
-    * [Custom Authoring (Limited Usage)](#custom-authoring-limited-usage)
-  * [Footer](#footer)
-<!-- TOC -->
+> **Table of contents**
+> - [Start using DOTS in Half an Hour](#start-using-dots-in-half-an-hour)
+>     - [Who is this article for?](#who-is-this-article-for)
+>   - [Hardware](#hardware)
+>   - [OOP VS ECS: Data Structure](#oop-vs-ecs-data-structure)
+>   - [How Does ECS Function?](#how-does-ecs-function)
+>   - [Installation](#installation)
+>   - [Move Around](#move-around)
+>   - [Random & Spawn](#random--spawn)
+>   - [Physics!](#physics)
+>   - [Army of Spheres ( and referencing )](#army-of-spheres--and-referencing-)
+>   - [Connection with MonoBehaviours](#connection-with-monobehaviours)
+>     - [Sync from Systems using identifiers](#sync-from-systems-using-identifiers)
+>     - [Spawn GameObjects from Systems](#spawn-gameobjects-from-systems)
+>     - [Custom Authoring (Limited Usage)](#custom-authoring-limited-usage)
+>   - [Footer](#footer)
 
 ### Who is this article for?
 This article is about essentials needed for getting started with DOTS, and is considered for *advanced users* who are already familiar with Unity but don't know ECS or DOTS.
