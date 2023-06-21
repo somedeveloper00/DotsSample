@@ -5,7 +5,7 @@ This article is about essentials needed for getting started with DOTS, and is co
 
 ## Let's Talk Hardware
 When CPU gets a data from RAM, the request and data have to go through BUS, which itself takes some time to finish the job. That's why when modern CPUs need a block of data, they don't reach out to RAM at first; instead, they reach out to a set of temporary memories inside their chips called *cache*, there are *L1 cache*, *L2 cache* etc. depending on the CPU model; using these caches are the fastest method of accessing data (1 clock). When CPU can't find the data it needs inside the cache (_cache miss_), it'll need to get data from RAM, it gets a *whole bunch* of them at the same time and stores them inside the L1 cache (or others). 
-![illustration of CPU/RAM/BUS/L1 cache relation](img.png)
+![illustration of CPU/RAM/BUS/L1 cache relation](ArticleRes/img.png)
 This is where it becomes clear that having your related data structured one after another makes a big difference, because you'll need to use less transition through BUS. And this is where OOP makes it harder to take advantage of this modern feature.
 
 ## OOP VS ECS: Data Structure
@@ -26,7 +26,7 @@ Install the packages `Entities` for DOTS's core and `Entities Graphics` for vari
 ## Move Around
 For starters, let's make a cube that moves forward-backwards and rotates left-right, like the old Resident Evil games used to do.  
 Make the graphics side of things ready; for now, don't give the cube any parent or child.
-![img_2.png](img_2.png)
+![img_2.png](ArticleRes/img_2.png)
 Then over at scripts, let's start by thinking what components we want... in this case, we need to move the cube by some *moveSpeed* and rotate it by some *rotateSpeed*, so let's create a component for that
 ```csharp
 public struct MovingComponentData : IComponentData {
@@ -66,11 +66,11 @@ public class MovingAuthoring : MonoBehaviour {
 Note that the `authoring` is the instance of the MonoBehaviour that's being converted.
 With this alone, your component will turn into the previously created `MovingCompoenntData` component at runtime.
 To see it correctly converting to ECS, make a new SubScene in your scene  
-![img_3.png](img_3.png)  
+![img_3.png](ArticleRes/img_3.png)  
 And move your main cube inside it.  
-![img_5.png](img_5.png)  
+![img_5.png](ArticleRes/img_5.png)  
 Now enter play mode. Open Entities Hierarchy window, set Inspector as *Runtime* and you'll see the new `MoveComponentData` is added to your entity. 
-![img_7.png](img_7.png)  
+![img_7.png](ArticleRes/img_7.png)  
 Now let's add a system to make it work. I'll just write the whole thing here, many of the syntax are self-explanatory, but I'll explain the important parts.
 ```csharp
 // they have to be partial so ECS's source generator can add the rest of the code
@@ -462,7 +462,7 @@ public struct FloatTowardsComponentData : IComponentData {
 public struct FloatTargetAreaTag : IComponentData { }
 ``` 
 
-> Tags are `IComponentData`s with no fields. They appear specially above all other components inside the Editor ![img_8.png](img_8.png)
+> Tags are `IComponentData`s with no fields. They appear specially above all other components inside the Editor ![img_8.png](ArticleRes/img_8.png)
 
 Then we can just create an Authoring for it and assign the component to the target area game object. 
 
@@ -476,7 +476,7 @@ public class FloatTargetAreaTagAuthoring : MonoBehaviour {
     }
 }
 ```
-![img_9.png](img_9.png)
+![img_9.png](ArticleRes/img_9.png)
 
 As for system, here's the modified version that uses singleton pattern to retrieve the target area (using the tag):
 
@@ -674,10 +674,10 @@ public partial struct SyncTransformSystem : ISystem {
 > When you use managed/references in your System, it'll no longer be Burst-Compatible 
 
 I then assign the **SyncTransformToEntity** component to the GameObject that I want synced with Entity's, and give it some id.
-![img_10.png](img_10.png)  
+![img_10.png](ArticleRes/img_10.png)  
 
 Then I assign a **TransformSyncSourceAuthoring** to the Entity source, with the same id.  
-![img_11.png](img_11.png)
+![img_11.png](ArticleRes/img_11.png)
 
 <video src="out-10.mp4" controls ></video>
 
@@ -734,7 +734,7 @@ public partial struct SpawnGameObjectSyncedSystem : ISystem {
 ```
 
 I then use it like so:  
-![img_12.png](img_12.png)
+![img_12.png](ArticleRes/img_12.png)
 
 Note that this will force you to create a prefab from your GameObjects you want synced.  
 The results are the same, so I won't include the video.
