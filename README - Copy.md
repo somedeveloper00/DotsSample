@@ -1,8 +1,5 @@
-# Start using DOTS in Half an Hour
-
 > **Table of contents**
-> - [Start using DOTS in Half an Hour](#start-using-dots-in-half-an-hour)
->     - [Who is this article for?](#who-is-this-article-for)
+>   - [Who is this article for?](#who-is-this-article-for)
 >   - [Hardware](#hardware)
 >   - [OOP VS ECS: Data Structure](#oop-vs-ecs-data-structure)
 >   - [How Does ECS Function?](#how-does-ecs-function)
@@ -17,7 +14,7 @@
 >     - [Custom Authoring (Limited Usage)](#custom-authoring-limited-usage)
 >   - [Footer](#footer)
 
-### Who is this article for?
+## Who is this article for?
 This article is about essentials needed for getting started with DOTS, and is considered for *advanced users* who are already familiar with Unity but don't know ECS or DOTS.
 
 ## Hardware
