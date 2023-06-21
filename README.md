@@ -3,7 +3,7 @@
 ### Who is this article for?
 This article is about essentials needed for getting started with DOTS, and is considered for *advanced users* who are already familiar with Unity but don't know ECS or DOTS.
 
-## Let's Talk Hardware
+## Hardware
 When CPU gets a data from RAM, the request and data have to go through BUS, which itself takes some time to finish the job. That's why when modern CPUs need a block of data, they don't reach out to RAM at first; instead, they reach out to a set of temporary memories inside their chips called *cache*, there are *L1 cache*, *L2 cache* etc. depending on the CPU model; using these caches are the fastest method of accessing data (1 clock). When CPU can't find the data it needs inside the cache (_cache miss_), it'll need to get data from RAM, it gets a *whole bunch* of them at the same time and stores them inside the L1 cache (or others). 
 ![illustration of CPU/RAM/BUS/L1 cache relation](ArticleRes/img.png)
 This is where it becomes clear that having your related data structured one after another makes a big difference, because you'll need to use less transition through BUS. And this is where OOP makes it harder to take advantage of this modern feature.
