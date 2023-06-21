@@ -775,7 +775,7 @@ This process will not expand well, and can only be used when the entity is simpl
 ## Footer
 
 That's it for the starters guide, I hope you learned something new, and I hope you'll follow up on the ECS documentation to learn more about it, it's really an amazing system! 
-All sample codes from this project are available in the github repository, so you can download them and try them out yourself.    
+All sample codes from this project are available in the github repository [https://github.com/somedeveloper00/DotsSample](https://github.com/somedeveloper00/DotsSample), so you can download and try them out yourself.    
 If you have any questions, or you want to correct some part of this project, feel free to contact me via [email](mailto:barari.saeed.am@gmail.com) or create a pull request.
 
 - [ECS Documentation](https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-overview.html)
