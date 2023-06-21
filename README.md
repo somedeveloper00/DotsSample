@@ -117,7 +117,7 @@ public partial struct MoveSystem : ISystem {
 > Note that we're assigning the code to be optimized by Burst compiler; Burst is a compiler that optimizes your code for the CPU in IL level, and it's very useful for ECS. Coding Burst-Compatible C# is known as HPC#. It's beyond the scope of this tutorial to explain how it works, but just know that it won't work if your method uses managed variables. (more reasons to prioritize the use of value types over reference types for components)
 
 Now, in the code, perhaps the only strange part is the use of `SystemAPI.Query`. That syntax gives all the queried components that have the same entity. So it runs once per entity with `LocalTransform` and `MoveComponentData`; in our case, we only have one.
-<video src="out.mp4" controls></video>
+<video src="ArticleRes/out.mp4" controls></video>
 
 ## Random & Spawn
 
@@ -192,7 +192,7 @@ Ok, quite a few concepts right here. first off, `ecb` or Entity Command Buffer i
 You might have noticed that we're using `OnCreate` this time. That's because now we need the `BeginSimulationEntityCommandBufferSystem` to be created before our system. We could specify anything that our system depends on with the `RequireForUpdate` method. For instance we could specify that we *need* there to be a `SpawnComponentData` for our system t start working, in which case we'd add `state.RequireForUpdate<SpawnComponentData>()` to our `OnUpdate` as well.   
 The query part doesn't have anything worth noting.  
 This is the result of the spawner system:  
-<video src="out2.mp4" controls></video>  
+<video src="ArticleRes/out2.mp4" controls></video>  
 Notice how it doesn't respect the local position of our Authoring. Let's fix that
 ```csharp
 foreach (var (spawn, transform) in SystemAPI.Query<RefRW<SpawnComponentData>, RefRW<LocalTransform>>()) {
@@ -211,7 +211,7 @@ foreach (var (spawn, transform) in SystemAPI.Query<RefRW<SpawnComponentData>, Re
 }
 ```
 Now we're converting our local space random point to world space by using the `LocalTransform` of the entity, just like how we'd do in regular MonoBehaviour.
-<video src="out3.mp4" controls></video>  
+<video src="ArticleRes/out3.mp4" controls></video>  
 Let's also make it support local rotation and scale. First on the authoring side. how the Gizmo would draw it
 ```csharp
 void OnDrawGizmosSelected() {
@@ -220,11 +220,11 @@ void OnDrawGizmosSelected() {
     Gizmos.DrawWireCube( Vector3.zero, area );
 }
 ```
-<video src="out4.mp4" controls></video>  
+<video src="ArticleRes/out4.mp4" controls></video>  
 
 And then no changes needed for the system as it's already using the built-in local-to-world conversion algorithm inside `LocalTransform`;
 
-<video src="out5.mp4" controls></video>  
+<video src="ArticleRes/out5.mp4" controls></video>  
 
 Notice how the scale doesn't really work? That's because in ECS there's only uniform scaling, so you can't have fine controls over each axis of your local scale. Instead, we can get around this by modifying the `area` in the baker to respect the scale of the `authoring.transform`
 ```csharp
@@ -248,13 +248,13 @@ class SpawnBaker : Baker<SpawnAuthoring> {
     }
 }
 ```
-<video src="out-1.mp4" controls></video>
+<video src="ArticleRes/out-1.mp4" controls></video>
 
 ## Physics!
 We need to install **Unity Physics** package first.  
 Then assign physics to the spawning spheres as you'd normally do. Nothing new about this one.  
 
-<video src="out-2.mp4" controls></video>
+<video src="ArticleRes/out-2.mp4" controls></video>
 
 Now let's modify out movement system so instead of moving by LocalTransform, it moves by physics.
 ```csharp
@@ -285,7 +285,7 @@ public partial struct MoveSystem : ISystem {
 ```
 Note the `UpdateInGroup` attribute and the query have changed. We're using some of the Physics components and the `ApplyLinearImpulse` and `ApplyAngularImpulse` are extension methods from `Unity.Physics.Extensions.PhysicsComponentExtensions` that manipulate the `PhysicsVelocity` component.
 
-</video><video src="out-3.mp4" controls></video>
+</video><video src="ArticleRes/out-3.mp4" controls></video>
 
 There's nothing stopping us from manipulating the `PhysicsVelocity` directly though, we could just assign he velocity like we could with old `Rigidbody` components.
 
@@ -305,7 +305,7 @@ foreach (var (moving, transform, physicsVelocity) in SystemAPI.Query<
 ```
 But just like in `Rigidbody`, we need to be careful with this.  
 
-<video src="out-4.mp4" controls></video>
+<video src="ArticleRes/out-4.mp4" controls></video>
 
 ## Army of Spheres ( and referencing )
 
@@ -397,7 +397,7 @@ public void OnUpdate(ref SystemState state) {
 ```  
 Now let's make a few spawners in the scene for spheres to spawn from. 
 
-<video src="out-5.mp4" controls></video>
+<video src="ArticleRes/out-5.mp4" controls></video>
 
 Now to make them go towards the blue boxes, we need to make a system that's responsible for moving objects towards a random point in an area, and change that point every few moments. Here's the authoring and component data: 
 
@@ -459,11 +459,11 @@ This is what the system will look like:
 
 And for now, since we need to reference the target area from Editor, we're forced to move the prefab in the SubScene and connect the reference from there, and then spawning that object instead of the prefab, like so:
 
-<video src="out-6.mp4" controls></video>
+<video src="ArticleRes/out-6.mp4" controls></video>
 
 And the result should look something like this: 
 
-<video src="out-7.mp4" controls></video>
+<video src="ArticleRes/out-7.mp4" controls></video>
 
 Looks good, but this isn't a good practice, we need to come up with an approach that doesn't need moving our prefabs inside the SubScene in Editor. Here's where *Singletons* become handy! Let's create a tag for out target area and remove the referencing Entity from our previous component data.  
 
@@ -532,7 +532,7 @@ public partial struct FloatingTowardsSystem : ISystem {
 ```
 Notice that we're using `RequireForUpdate` to make sure that the system is only updated when one instance of the tag exists. I did that and updated some physics material, and tweaked some of the properties to get a cool looking, insect-like movement.
 
-<video src="out-8.mp4" controls></video>
+<video src="ArticleRes/out-8.mp4" controls></video>
 
 All of these are running in a single thread, so let's make it multi-threaded by using *Jobs* system. Jobs is part of the DOTS and is Burst-compatible if we follow some guidelines, mostly about using just unmanaged types and placing the right attributes. There are a few `Job` options we could use, the one that we're going to use is `IJobEntity`; this job is the easiest to work with; the special point of it is that you write the parameters you need, and Jobs will generate the rest of the code for you (You can view the generated sources in /Temp directory of your project).  
 Here's how the `FloatTowardsSystem` will look like:  
@@ -597,7 +597,7 @@ That's it, the system is now multi-threaded.
 There are some things you either just can't do with ECS, or you can do a lot easier using regular MonoBehaviours. So you'll need to come up with some way of letting the two world communicate. There are a few ways you can do this, but none of them are officially better than the other.  
 Let's go through them with an example. Use the physically based movement system to move a cylinder around. And then we'll make a GameObject Camera follow the moving cylinder. Here's what I've set up as the scene:
 
-<video src="out-9.mp4" controls></video>
+<video src="ArticleRes/out-9.mp4" controls></video>
 
 > The Freeze constraints inside Rigidbody don't work for ECS yet, so I've used a custom component to freeze the rotation.
 > ```csharp
@@ -696,7 +696,7 @@ I then assign the **SyncTransformToEntity** component to the GameObject that I w
 Then I assign a **TransformSyncSourceAuthoring** to the Entity source, with the same id.  
 ![img_11.png](ArticleRes/img_11.png)
 
-<video src="out-10.mp4" controls ></video>
+<video src="ArticleRes/out-10.mp4" controls ></video>
 
 ### Spawn GameObjects from Systems
 
