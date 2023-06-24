@@ -10,9 +10,8 @@ using Unity.Transforms;
 namespace SampleGame.FloatTowards {
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial struct FloatingTowardsSystem : ISystem {
-        
-        [BurstCompile] public void OnCreate(ref SystemState state) => 
-            state.RequireForUpdate<FloatTargetAreaTag>();
+        [BurstCompile] public void OnCreate(ref SystemState state) 
+            => state.RequireForUpdate<FloatTargetAreaTag>();
 
         [BurstCompile] public void OnUpdate(ref SystemState state) {
             var tagEntity = SystemAPI.GetSingletonEntity<FloatTargetAreaTag>();
@@ -31,14 +30,18 @@ namespace SampleGame.FloatTowards {
         [BurstCompile] public partial struct FloatingTowardsSystemJob : IJobEntity {
             
             [ReadOnly] public AreaComponentData targetArea;
-            public LocalTransform targetAreaTransform;
-            public double elapsedTime;
+            [ReadOnly] public double elapsedTime;
+            [ReadOnly] public LocalTransform targetAreaTransform;
             
             // defining our query parameters here as 'ref' or 'in'
-            [BurstCompile] void Execute(
-                ref FloatTowardsComponentData floatTowards, ref PhysicsVelocity physicsVelocity,
+            void Execute([ChunkIndexInQuery] int chunkIndex, [EntityIndexInChunk] int entityIndex, ref FloatTowardsComponentData floatTowards, ref PhysicsVelocity physicsVelocity,
                 in PhysicsMass physicsMass, ref LocalTransform transform) 
             {
+                // initialize random
+                if (floatTowards.random.state == 0) {
+                    floatTowards.random = new ( (uint)(elapsedTime * 100 + chunkIndex + entityIndex) );
+                }
+
                 // new random point
                 if (elapsedTime > floatTowards.nextReTargetTime) {
                     floatTowards.nextReTargetTime = (float)(elapsedTime + floatTowards.reTargetRate);

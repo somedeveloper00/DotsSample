@@ -1,21 +1,19 @@
 # Start using DOTS in Half an Hour
 
 > **Table of contents**
-> - [Start using DOTS in Half an Hour](#start-using-dots-in-half-an-hour)
->     - [Who is this article for?](#who-is-this-article-for)
->   - [Hardware](#hardware)
->   - [OOP VS ECS: Data Structure](#oop-vs-ecs-data-structure)
->   - [How Does ECS Function?](#how-does-ecs-function)
->   - [Installation](#installation)
->   - [Move Around](#move-around)
->   - [Random & Spawn](#random--spawn)
->   - [Physics!](#physics)
->   - [Army of Spheres ( and referencing )](#army-of-spheres--and-referencing-)
->   - [Connection with MonoBehaviours](#connection-with-monobehaviours)
->     - [Sync from Systems using identifiers](#sync-from-systems-using-identifiers)
->     - [Spawn GameObjects from Systems](#spawn-gameobjects-from-systems)
->     - [Custom Authoring (Limited Usage)](#custom-authoring-limited-usage)
->   - [Footer](#footer)
+> - [Hardware](#hardware)
+> - [OOP VS ECS: Data Structure](#oop-vs-ecs-data-structure)
+> - [How Does ECS Function?](#how-does-ecs-function)
+> - [Installation](#installation)
+> - [Move Around](#move-around)
+> - [Random & Spawn](#random--spawn)
+> - [Physics!](#physics)
+> - [Army of Spheres ( and referencing )](#army-of-spheres--and-referencing-)
+> - [Connection with MonoBehaviours](#connection-with-monobehaviours)
+>   - [Sync from Systems using identifiers](#sync-from-systems-using-identifiers)
+>   - [Spawn GameObjects from Systems](#spawn-gameobjects-from-systems)
+>   - [Custom Authoring (Limited Usage)](#custom-authoring-limited-usage)
+> - [Footer](#footer)
 
 ### Who is this article for?
 This article is about essentials needed for getting started with DOTS, and is considered for *advanced users* who are already familiar with Unity but don't know ECS or DOTS.
@@ -425,8 +423,7 @@ public class FloatTowardsAuthoring : MonoBehaviour {
                 new FloatTowardsComponentData {
                     speed = authoring.speed,
                     reTargetRate = authoring.reTargetRate,
-                    targetArea = GetEntity( authoring.targetArea, TransformUsageFlags.Dynamic )و
-                    random = new Random( (uint)new System.Random().Next() )
+                    targetArea = GetEntity( authoring.targetArea, TransformUsageFlags.Dynamic )
                 } );
         }
     }
@@ -437,12 +434,21 @@ This is what the system will look like:
 
 ```csharp
 [BurstCompile] public void OnUpdate(ref SystemState state) {
+
+    int index = -1;
+    
     foreach (var (floatTowards, physicsVelocity, physicsMass, transform) in SystemAPI.Query<
                  RefRW<FloatTowardsComponentData>,
                  RefRW<PhysicsVelocity>,
                  RefRO<PhysicsMass>,
                  RefRW<LocalTransform>>()) 
     {
+        index++;
+        // initialize random
+        if (floatTowards.random.state == 0) {
+            floatTowards.random = new ( (uint)(SystemAPI.Time.ElapsedTime * 100 + index) );
+        }
+        
         // new random point
         if (SystemAPI.Time.ElapsedTime > floatTowards.ValueRO.nextReTargetTime) {
             floatTowards.ValueRW.nextReTargetTime = (float)(SystemAPI.Time.ElapsedTime + floatTowards.ValueRO.reTargetRate);
@@ -459,11 +465,14 @@ This is what the system will look like:
 }
 ```  
 
+> Note how we're initializing `Mathematics.Random` from system instead of from the Baker. That's because baker runs only once per GameObject conversion. So if you instantiate a prefab multiple times, the Baker will only run once and the random seed will be the same for all of them. There are various ways of creating a `Mathematics.Random` with a random seed, but as of now none of them are officially better than the other.  
+> Also worth mentioning that `System.Random` is a managed type, so your system won't be burst-compatible if you use that.
+
 And for now, since we need to reference the target area from Editor, we're forced to move the prefab in the SubScene and connect the reference from there, and then spawning that object instead of the prefab, like so:
 
 <video src="ArticleRes/out-6.mp4" controls></video>
 
-And the result should look something like this: 
+My result looks like this, based on the physics configs I set up for my objects: 
 
 <video src="ArticleRes/out-7.mp4" controls></video>
 
@@ -483,7 +492,7 @@ public struct FloatTargetAreaTag : IComponentData { }
 
 > Tags are `IComponentData`s with no fields. They appear specially above all other components inside the Editor ![img_8.png](ArticleRes/img_8.png)
 
-Then we can just create an Authoring for it and assign the component to the target area game object. 
+Then we can just create an Authoring for it and assign the component to the target area game object.
 
 ```csharp
 public class FloatTargetAreaTagAuthoring : MonoBehaviour {
@@ -511,12 +520,20 @@ public partial struct FloatingTowardsSystem : ISystem {
         var tagEntity = SystemAPI.GetSingletonEntity<FloatTargetAreaTag>();
         var targetArea = SystemAPI.GetComponent<AreaComponentData>( tagEntity );
         
+        int index = -1;
+        
         foreach (var (floatTowards, physicsVelocity, physicsMass, transform) in SystemAPI.Query<
                      RefRW<FloatTowardsComponentData>,
                      RefRW<PhysicsVelocity>,
                      RefRO<PhysicsMass>,
                      RefRW<LocalTransform>>()) 
         {
+            index++;
+            // initialize random
+            if (floatTowards.random.state == 0) {
+                floatTowards.random = new ( (uint)(SystemAPI.Time.ElapsedTime * 100 + index) );
+            }
+            
             // new random point
             if (SystemAPI.Time.ElapsedTime > floatTowards.ValueRO.nextReTargetTime) {
                 floatTowards.ValueRW.nextReTargetTime = (float)(SystemAPI.Time.ElapsedTime + floatTowards.ValueRO.reTargetRate);
@@ -567,10 +584,14 @@ public partial struct FloatingTowardsSystem : ISystem {
         public double elapsedTime;
         
         // defining our query parameters here as 'ref' or 'in'
-        [BurstCompile] void Execute(
+        [BurstCompile] void Execute([ChunkIndexInQuery] int chunkIndex, [EntityIndexInChunk] int entityIndex,
             ref FloatTowardsComponentData floatTowards, ref PhysicsVelocity physicsVelocity,
             in PhysicsMass physicsMass, ref LocalTransform transform) 
         {
+            // initialize random
+            if (floatTowards.random.state == 0) {
+                floatTowards.random = new ( (uint)(elapsedTime * 100 + chunkIndex + entityIndex) );
+            }
             // new random point
             if (elapsedTime > floatTowards.nextReTargetTime) {
                 floatTowards.nextReTargetTime = (float)(elapsedTime + floatTowards.reTargetRate);
@@ -587,9 +608,10 @@ public partial struct FloatingTowardsSystem : ISystem {
 }
 ```  
 
-Notice that the job class is *partial*, it's because the other part of it is going to be written in source generation process. We write the query parameters we need as the `Execute` arguments, and the source gen will handle the query part for us. And as for the local fields, they serve as parameters for the job, which we're injecting from the system; Also notice that we can't use `SystemAPI.Time` in the job, so we're passing it as a parameter instead.  
-And then finally, the `ScheduleParallel`, as it's name suggests, marks the job to be executed in parallel.  
-> Don't forget to mark burst-compatible functions and types as [BurstCompile]. The perfromance boost is worth it.
+Again lots of new syntax.  
+Notice that the job class is *partial*, it's because the other part of it is going to be written in source generation process. We write the query parameters we need as the `Execute` arguments, and the source gen will handle the query part for us. And as for the local fields, they serve as parameters for the job, which we're injecting from the system; Also notice that we can't use `SystemAPI.Time` in the job, so we're passing it as a parameter instead. There are some parameter attributes that make the parameter be populated specially, two of which we're using here, `[ChunkIndexInQuery]` and `[EntityIndexInChunk]`. The idea of a `Chunk` is a *pack of Jobs*; jobs may run in multiple packs, so this way we can have the information of what chunk we're currently running, which can be useful for us to find a random seed to initialize our `Mathematics.Random` variable.  
+And then finally, the `ScheduleParallel` in the system, as it's name suggests, marks the job to be executed in parallel.  
+> Don't forget to mark burst-compatible functions and types as [BurstCompile]. The performance boost is worth it.
 
 That's it, the system is now multi-threaded.
 

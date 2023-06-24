@@ -363,7 +363,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71879478594a4d4092788d1438aef028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  area: {x: 1000, y: 1000, z: 1000}
+  area: {x: 1, y: 1, z: 1}
 --- !u!114 &391019876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -378,7 +378,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefab: {fileID: 3467764483977418294, guid: 1dba9c45f15d05349951d770f17ef220, type: 3}
   spawnRate: 0.1
-  spawnCount: 50
+  spawnCount: 1
 --- !u!4 &391019877
 Transform:
   m_ObjectHideFlags: 0
@@ -386,14 +386,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 391019874}
-  m_LocalRotation: {x: 0.07842962, y: -0.7710613, z: 0.15968788, w: 0.6114026}
-  m_LocalPosition: {x: 58.3, y: 18.1, z: 23.5}
-  m_LocalScale: {x: 37.4556, y: 8.886653, z: 13.607932}
+  m_LocalRotation: {x: -0.21849453, y: -0.6052198, z: 0.50373024, w: 0.5763896}
+  m_LocalPosition: {x: -30.2, y: 18.1, z: 10.5}
+  m_LocalScale: {x: 26.791506, y: 1.8705515, z: 2.864333}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 20.009, y: -102.375, z: 4.536}
+  m_LocalEulerAnglesHint: {x: 20.969, y: -79.389, z: 64.837}
 --- !u!1 &514463740
 GameObject:
   m_ObjectHideFlags: 0
@@ -529,7 +529,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71879478594a4d4092788d1438aef028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  area: {x: 1000, y: 1000, z: 1000}
+  area: {x: 1, y: 1, z: 1}
 --- !u!114 &571928697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -544,7 +544,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefab: {fileID: 3467764483977418294, guid: 1dba9c45f15d05349951d770f17ef220, type: 3}
   spawnRate: 0.1
-  spawnCount: 50
+  spawnCount: 1
 --- !u!4 &571928698
 Transform:
   m_ObjectHideFlags: 0
@@ -552,14 +552,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 571928695}
-  m_LocalRotation: {x: -0.59834033, y: -0.7789008, z: 0.10367268, w: 0.15669873}
-  m_LocalPosition: {x: -26.91, y: 18.1, z: -24.23}
-  m_LocalScale: {x: 37.4556, y: 8.886653, z: 13.607932}
+  m_LocalRotation: {x: -0.02835619, y: -0.98178077, z: 0.1758361, w: 0.0662136}
+  m_LocalPosition: {x: 5.43, y: -10.7, z: 9.44}
+  m_LocalScale: {x: 18.312418, y: 4.344774, z: 6.6530533}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: -1.491, y: -158.39, z: 74.777}
+  m_LocalEulerAnglesHint: {x: 19.969, y: -171.434, z: 4.819}
 --- !u!1 &710281251
 GameObject:
   m_ObjectHideFlags: 0
@@ -979,14 +979,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1194167836}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0.147986, y: -0, z: -0, w: 0.98898953}
+  m_LocalPosition: {x: -6.8, y: 12.85, z: -6.7}
+  m_LocalScale: {x: 0.6542676, y: 1.8799473, z: 6.811903}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -17.02, y: 0, z: 0}
 --- !u!114 &1194167838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -999,7 +999,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71879478594a4d4092788d1438aef028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  area: {x: 1000000, y: 1000000, z: 1000000}
+  area: {x: 10, y: 10, z: 2.57}
 --- !u!114 &1194167839
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1038,8 +1038,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1819934724}
   m_LocalRotation: {x: 0.49827895, y: -0.6632228, z: 0.04144999, w: 0.5568982}
-  m_LocalPosition: {x: -34.1, y: 18.1, z: 34}
-  m_LocalScale: {x: 12, y: 1, z: 4.3597}
+  m_LocalPosition: {x: 36.2, y: 10, z: -5.8}
+  m_LocalScale: {x: 28.5468, y: 2.3789, z: 10.371291}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1059,7 +1059,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefab: {fileID: 3467764483977418294, guid: 1dba9c45f15d05349951d770f17ef220, type: 3}
   spawnRate: 0.1
-  spawnCount: 50
+  spawnCount: 1
 --- !u!114 &1819934727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1072,4 +1072,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71879478594a4d4092788d1438aef028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  area: {x: 1000, y: 1000, z: 1000}
+  area: {x: 1, y: 1, z: 1}

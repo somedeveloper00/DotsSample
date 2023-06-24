@@ -6,7 +6,7 @@ namespace SampleGame.Spawn {
     public class AreaAuthoring : MonoBehaviour {
         public Vector3 area;
          
-        void OnDrawGizmosSelected() {
+        void OnDrawGizmos() {
             Gizmos.color = Color.red;
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.DrawWireCube( Vector3.zero, area );

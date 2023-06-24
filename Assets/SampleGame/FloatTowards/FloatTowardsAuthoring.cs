@@ -1,4 +1,3 @@
-using SampleGame.Spawn;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -25,7 +24,6 @@ namespace SampleGame.FloatTowards {
                     new FloatTowardsComponentData {
                         speed = authoring.speed,
                         reTargetRate = authoring.reTargetRate,
-                        random = new Random( (uint)new System.Random().Next() )
                     } );
             }
         }
