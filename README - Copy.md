@@ -48,7 +48,7 @@ public struct MovingComponentData : IComponentData {
 }
 ```
 Notice how it's a `struct` and inherits from `IComponentData`. If you had used a `class` instead, you would've created a *managed* component. That's not necessarily bad, but it's always better to try to use as little managed data as possible in ECS.  
-Now, let's create out *Authoring* MonoBehaviour. It's a normal MonoBehaviour, only it doesn't have any systems inside it. just data. It's purpose is to convert to ECS at runtime, but show as a normal Game Object in Edit mode.
+Now, let's create an *Authoring* MonoBehaviour. It's a normal MonoBehaviour, only it doesn't have any systems inside it. just data. It's purpose is to convert to ECS at runtime, but show as a normal Game Object in Editor.
 ```csharp
 public class MovingAuthoring : MonoBehaviour {
     public float moveSpeed;
@@ -80,10 +80,13 @@ Note that the `authoring` is the instance of the MonoBehaviour that's being conv
 With this alone, your component will turn into the previously created `MovingCompoenntData` component at runtime.
 To see it correctly converting to ECS, make a new SubScene in your scene  
 ![img_3.png](https://raw.githubusercontent.com/somedeveloper00/DotsSample/main/ArticleRes/img_3.png)  
+
 And move your main cube inside it.  
 ![img_5.png](https://raw.githubusercontent.com/somedeveloper00/DotsSample/main/ArticleRes/img_5.png)  
+
 Now enter play mode. Open Entities Hierarchy window, set Inspector as *Runtime* and you'll see the new `MoveComponentData` is added to your entity. 
 ![img_7.png](https://raw.githubusercontent.com/somedeveloper00/DotsSample/main/ArticleRes/img_7.png)  
+
 Now let's add a system to make it work. I'll just write the whole thing here, many of the syntax are self-explanatory, but I'll explain the important parts.
 ```csharp
 // they have to be partial so ECS's source generator can add the rest of the code
