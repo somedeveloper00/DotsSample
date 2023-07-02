@@ -246,7 +246,7 @@ class SpawnBaker : Baker<SpawnAuthoring> {
 ```
 <video src="https://raw.githubusercontent.com/somedeveloper00/DotsSample/main/ArticleRes/out-1.mp4" controls></video>
 
-## Physics!
+## Physics
 We need to install **Unity Physics** package first.  
 Then assign physics to the spawning spheres as you'd normally do. Nothing new about this one.  
 
