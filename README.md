@@ -7,7 +7,7 @@
 > - [Installation](#installation)
 > - [Move Around](#move-around)
 > - [Random & Spawn](#random--spawn)
-> - [Physics!](#physics)
+> - [Physics](#physics)
 > - [Army of Spheres ( and referencing )](#army-of-spheres--and-referencing-)
 > - [Connection with MonoBehaviours](#connection-with-monobehaviours)
 >   - [Sync from Systems using identifiers](#sync-from-systems-using-identifiers)

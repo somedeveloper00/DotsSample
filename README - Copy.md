@@ -5,7 +5,7 @@
 > - [Installation](#installation)
 > - [Move Around](#move-around)
 > - [Random & Spawn](#random--spawn)
-> - [Physics!](#physics)
+> - [Physics](#physics)
 > - [Army of Spheres ( and referencing )](#army-of-spheres--and-referencing-)
 > - [Connection with MonoBehaviours](#connection-with-monobehaviours)
     >   - [Sync from Systems using identifiers](#sync-from-systems-using-identifiers)
@@ -249,8 +249,6 @@ class SpawnBaker : Baker<SpawnAuthoring> {
 ## Physics!
 We need to install **Unity Physics** package first.  
 Then assign physics to the spawning spheres as you'd normally do. Nothing new about this one.  
-
-<video src="https://raw.githubusercontent.com/somedeveloper00/DotsSample/main/ArticleRes/out-2.mp4" controls></video>
 
 Now let's modify out movement system so instead of moving by LocalTransform, it moves by physics.
 ```csharp
