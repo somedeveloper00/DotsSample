@@ -36,7 +36,7 @@ Your systems are responsible for handling everything, and thanks to the fast nat
 > There are many debates about whether or not ECS is superior to OOP, or if videogames even *need* to worry that much about CPU optimizations when the bottleneck is usually the GPU.
 
 ## Installation
-Install the packages `Entities` for DOTS's core and `Entities Graphics` for various useful in-editor tools. Make sure you're using Unity 2022 LTS or later because that's when it became production-ready.
+Install the packages `Entities` for DOTS' core and `Entities Graphics` for various useful in-editor tools. Make sure you're using Unity 2022 LTS or later because that's when it became production-ready. As of now, DOTS' renderer is only available for URP and HDRP version 9.0.0 and above, so make sure you're using one of those.
 
 ## Move Around
 For starters, let's make a cube that moves forward-backwards and rotates left-right, like the old Resident Evil games used to do.  
@@ -254,8 +254,11 @@ class SpawnBaker : Baker<SpawnAuthoring> {
 <video src="ArticleRes/out-1.mp4" controls></video>
 
 ## Physics
-We need to install **Unity Physics** package first.  
-Then assign physics to the spawning spheres as you'd normally do. Nothing new about this one.  
+We need to install **Unity Physics** package first.
+Then assign physics to the spawning spheres as you'd normally do. Nothing new about this one.
+
+> After you install the Unit Physics package, regular physics components will work as Authoring when the GameObject bakes into Entity, so you don't need to change physics components after this migration.
+
 Then let's modify our movement system so instead of moving by LocalTransform, it moves by physics.
 ```csharp
 // runs every fixed update
@@ -376,7 +379,7 @@ public class SpawnAuthoring : MonoBehaviour {
     }
 }
 ```  
-and this would be the spawner system's `OnUpdate`:
+and this would be the spawner system's `OnUpdate`, using both components:
 ```csharp
 public void OnUpdate(ref SystemState state) {    
     var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
@@ -433,34 +436,38 @@ Notice that we're using `Entity` for the target area, as we need it to remain a 
 This is what the system will look like:  
 
 ```csharp
-[BurstCompile] public void OnUpdate(ref SystemState state) {
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+public partial struct FloatingTowardsSystem : ISystem {
 
-    int index = -1;
+    [BurstCompile] public void OnUpdate(ref SystemState state) {
     
-    foreach (var (floatTowards, physicsVelocity, physicsMass, transform) in SystemAPI.Query<
-                 RefRW<FloatTowardsComponentData>,
-                 RefRW<PhysicsVelocity>,
-                 RefRO<PhysicsMass>,
-                 RefRW<LocalTransform>>()) 
-    {
-        index++;
-        // initialize random
-        if (floatTowards.random.state == 0) {
-            floatTowards.random = new ( (uint)(SystemAPI.Time.ElapsedTime * 100 + index) );
-        }
+        int index = -1;
         
-        // new random point
-        if (SystemAPI.Time.ElapsedTime > floatTowards.ValueRO.nextReTargetTime) {
-            floatTowards.ValueRW.nextReTargetTime = (float)(SystemAPI.Time.ElapsedTime + floatTowards.ValueRO.reTargetRate);
-            var targetArea = SystemAPI.GetComponent<AreaComponentData>( floatTowards.ValueRO.targetArea );
-            var point = floatTowards.ValueRW.random.NextFloat3( -targetArea.area / 2f, targetArea.area / 2f );
-            floatTowards.ValueRW.targetPoint = = transform.ValueRW.TransformPoint( point );
+        foreach (var (floatTowards, physicsVelocity, physicsMass, transform) in SystemAPI.Query<
+                     RefRW<FloatTowardsComponentData>,
+                     RefRW<PhysicsVelocity>,
+                     RefRO<PhysicsMass>,
+                     RefRW<LocalTransform>>()) 
+        {
+            index++;
+            // initialize random
+            if (floatTowards.random.state == 0) {
+                floatTowards.random = new ( (uint)(SystemAPI.Time.ElapsedTime * 100 + index) );
+            }
+            
+            // new random point
+            if (SystemAPI.Time.ElapsedTime > floatTowards.ValueRO.nextReTargetTime) {
+                floatTowards.ValueRW.nextReTargetTime = (float)(SystemAPI.Time.ElapsedTime + floatTowards.ValueRO.reTargetRate);
+                var targetArea = SystemAPI.GetComponent<AreaComponentData>( floatTowards.ValueRO.targetArea );
+                var point = floatTowards.ValueRW.random.NextFloat3( -targetArea.area / 2f, targetArea.area / 2f );
+                floatTowards.ValueRW.targetPoint = = transform.ValueRW.TransformPoint( point );
+            }
+            
+            // move towards point
+            var direction = math.normalize( floatTowards.ValueRO.targetPoint - transform.ValueRO.Position );
+            var moveImpulse = direction * floatTowards.ValueRO.speed;
+            physicsVelocity.ValueRW.ApplyLinearImpulse( physicsMass.ValueRO, transform.ValueRO.Scale, moveImpulse );
         }
-        
-        // move towards point
-        var direction = math.normalize( floatTowards.ValueRO.targetPoint - transform.ValueRO.Position );
-        var moveImpulse = direction * floatTowards.ValueRO.speed;
-        physicsVelocity.ValueRW.ApplyLinearImpulse( physicsMass.ValueRO, transform.ValueRO.Scale, moveImpulse );
     }
 }
 ```  
@@ -519,6 +526,7 @@ public partial struct FloatingTowardsSystem : ISystem {
 
         var tagEntity = SystemAPI.GetSingletonEntity<FloatTargetAreaTag>();
         var targetArea = SystemAPI.GetComponent<AreaComponentData>( tagEntity );
+        var targetAreaTransform = SystemAPI.GetComponent<LocalTransform>( tagEntity );
         
         int index = -1;
         
@@ -538,7 +546,7 @@ public partial struct FloatingTowardsSystem : ISystem {
             if (SystemAPI.Time.ElapsedTime > floatTowards.ValueRO.nextReTargetTime) {
                 floatTowards.ValueRW.nextReTargetTime = (float)(SystemAPI.Time.ElapsedTime + floatTowards.ValueRO.reTargetRate);
                 var point = floatTowards.ValueRW.random.NextFloat3( -targetArea.area / 2f, targetArea.area / 2f );
-                floatTowards.ValueRW.targetPoint = = transform.ValueRW.TransformPoint( point );
+                floatTowards.ValueRW.targetPoint = targetAreaTransform.TransformPoint( point );
             }
             
             // move towards point
